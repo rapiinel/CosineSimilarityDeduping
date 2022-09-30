@@ -20,7 +20,7 @@ class deduping_class():
         self.ground_truth = gt
         self.ngrams_value = None
 
-    def key_selector(self, nm, *column_names):
+    def key_selector(self, *column_names, data = None):
         """
         This function lets the user select the needed columns to be keys.
         To make this a simple function, the column names of the ground truth input and dataframe to match should be equal
@@ -32,6 +32,17 @@ class deduping_class():
             sets the key reference column in ground truth
             return 
         """
+        if str(type(data)) == "<class 'NoneType'>":
+            raise ValueError("There is no dataframe inputed for matching")
+        else:
+            nm = data
+
+        column_names = [value for value in column_names]
+
+        # making sure the selected columns in string format
+        for dataframe in [nm, self.ground_truth]:
+            for col in column_names:
+                dataframe[col] = dataframe[col].astype('str')
 
         self.ground_truth['primary_key'] = self.ground_truth[column_names].values.tolist()
         self.ground_truth['primary_key'] = self.ground_truth['primary_key'].apply(''.join)
@@ -71,11 +82,11 @@ class deduping_class():
             self.gt_tfidf
         """
         vectorizer = TfidfVectorizer(min_df=1, analyzer=self.ngrams)
-        combined_list = nm['primary_key'].tolist() + self.gt['primary_key'].tolist()
-        vectorizer.fit(nm['primary_key'].tolist() + self.gt['primary_key'].tolist())
+        self.combined_list = nm['primary_key'].tolist() + self.ground_truth['primary_key'].tolist()
+        vectorizer.fit(nm['primary_key'].tolist() + self.ground_truth['primary_key'].tolist())
 
         self.nm_tfidf = nm['primary_key'].tolist()
         self.nm_tfidf = vectorizer.transform(self.nm_tfidf)
 
-        self.gt_tfidf = self.gt['primary_key']
+        self.gt_tfidf = self.ground_truth['primary_key']
         self.gt_tfidf = vectorizer.transform(self.gt_tfidf)
