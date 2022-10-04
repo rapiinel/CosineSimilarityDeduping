@@ -43,17 +43,28 @@ class deduping_class():
             sets the key reference column in ground truth
             return 
         """
+
         if str(type(data)) == "<class 'NoneType'>":
             raise ValueError("There is no dataframe inputed for matching")
         else:
             self.nm = data
 
+        #column checker
+        for col_value in column_names:
+            if col_value not in self.ground_truth.columns:
+                raise KeyError(f"{col_value}, Column name not found in ground truth dataframe")
+
+        for col_value in column_names:
+            if col_value not in self.nm.columns:
+                raise KeyError(f"{col_value}, Column name not found in name to match dataframe")
+        
         column_names = [value for value in column_names]
 
         # making sure the selected columns in string format
         for dataframe in [self.nm, self.ground_truth]:
             for col in column_names:
                 dataframe[col] = dataframe[col].astype('str')
+                dataframe[col] = dataframe[col].str.replace(" ", "")
 
         self.ground_truth['primary_key'] = self.ground_truth[column_names].values.tolist()
         self.ground_truth['primary_key'] = self.ground_truth['primary_key'].apply(''.join)
@@ -96,9 +107,11 @@ class deduping_class():
 
         self.nm_tfidf = self.nm['primary_key'].tolist()
         self.nm_tfidf = vectorizer.transform(self.nm_tfidf)
+        self.nm_tfidf_df = pd.DataFrame.sparse.from_spmatrix(self.nm_tfidf, columns= vectorizer.get_feature_names_out())
 
         self.gt_tfidf = self.ground_truth['primary_key']
         self.gt_tfidf = vectorizer.transform(self.gt_tfidf)
+        self.gt_tfidf_df = pd.DataFrame.sparse.from_spmatrix(self.gt_tfidf, columns= vectorizer.get_feature_names_out())
 
     def get_match(self, top):
         """
