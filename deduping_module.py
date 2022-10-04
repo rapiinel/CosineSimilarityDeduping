@@ -5,6 +5,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from sparse_dot_topn import awesome_cossim_topn 
 import re
+import json
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -19,6 +20,13 @@ class deduping_class():
         """
         self.ground_truth = gt
         self.ngrams_value = None
+        self.state_reference_initiator()
+    
+    def state_reference_initiator(self, link = 'state_reference.json'):
+        f = open(link)
+        self.state_reference = json.load(f)
+        f.close()
+
 
     def key_selector(self, *column_names, data = None):
         """
@@ -135,3 +143,19 @@ class deduping_class():
                             'right_side': right_side,
                             'Ground Truth ID':contact_id, 
                             'similarity': similairity})
+
+    def state_abbrev(self, value):
+        """
+        This function will transform the state into abbrevation format
+        """
+        value = str(value).lower() # making sure the value is in string format
+
+        try:
+            if value != 'nan':
+                return self.state_reference[value]
+            else:
+                return value
+        except:
+            return "Error no value in reference"
+
+        
