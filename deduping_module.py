@@ -5,6 +5,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from sparse_dot_topn import awesome_cossim_topn 
 import re
+import json
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -12,13 +13,23 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 class deduping_class():
 
-    def __init__(self, gt):
+    def __init__(self, gt, object):
         """
-        Input: reference/groundtruth
-        
+        Input: reference/groundtruth, object to be deduped
         """
         self.ground_truth = gt
         self.ngrams_value = None
+        self.state_reference_initiator()
+        if str(object).lower() == 'account':
+            self.ground_truth.drop_duplicates(subset='Salesforce Account Id', inplace= True)
+            self.ground_truth.reset_index(drop=True, inplace= True)
+        
+    
+    def state_reference_initiator(self, link = 'state_reference.json'):
+        f = open(link)
+        self.state_reference = json.load(f)
+        f.close()
+
 
     def key_selector(self, *column_names, data = None):
         """
@@ -35,22 +46,20 @@ class deduping_class():
         if str(type(data)) == "<class 'NoneType'>":
             raise ValueError("There is no dataframe inputed for matching")
         else:
-            nm = data
+            self.nm = data
 
         column_names = [value for value in column_names]
 
         # making sure the selected columns in string format
-        for dataframe in [nm, self.ground_truth]:
+        for dataframe in [self.nm, self.ground_truth]:
             for col in column_names:
                 dataframe[col] = dataframe[col].astype('str')
 
         self.ground_truth['primary_key'] = self.ground_truth[column_names].values.tolist()
         self.ground_truth['primary_key'] = self.ground_truth['primary_key'].apply(''.join)
 
-        nm['primary_key'] = nm[column_names].values.tolist()
-        nm['primary_key'] = nm['primary_key'].apply(''.join)
-
-        return nm
+        self.nm['primary_key'] = self.nm[column_names].values.tolist()
+        self.nm['primary_key'] = self.nm['primary_key'].apply(''.join)
 
     def ngrams(self, string, n=3):
         """
@@ -71,7 +80,7 @@ class deduping_class():
         """
         self.ngrams_value = n
 
-    def vectorizer(self, nm):
+    def vectorizer(self):
         """
         This function will convert the dataframe into a sparse matrix
         input: 
@@ -82,11 +91,74 @@ class deduping_class():
             self.gt_tfidf
         """
         vectorizer = TfidfVectorizer(min_df=1, analyzer=self.ngrams)
-        self.combined_list = nm['primary_key'].tolist() + self.ground_truth['primary_key'].tolist()
-        vectorizer.fit(nm['primary_key'].tolist() + self.ground_truth['primary_key'].tolist())
+        self.combined_list = self.nm['primary_key'].tolist() + self.ground_truth['primary_key'].tolist()
+        vectorizer.fit(self.nm['primary_key'].tolist() + self.ground_truth['primary_key'].tolist())
 
-        self.nm_tfidf = nm['primary_key'].tolist()
+        self.nm_tfidf = self.nm['primary_key'].tolist()
         self.nm_tfidf = vectorizer.transform(self.nm_tfidf)
 
         self.gt_tfidf = self.ground_truth['primary_key']
         self.gt_tfidf = vectorizer.transform(self.gt_tfidf)
+
+    def get_match(self, top):
+        """
+        This function will match the ground truth and to match dataframe tfidf format
+
+        input: the input will only be self and the number matched record, just make sure that you already run the vecotrizer
+
+        output: Will store the output to self.matches
+        """
+
+        matches = awesome_cossim_topn(self.nm_tfidf, self.gt_tfidf.transpose(), 10, 0.8, use_threads=True, n_jobs=6)
+
+        self.matched = self.get_matches_df(matches, self.combined_list, top=top)
+
+    def get_matches_df(self,sparse_matrix, name_vector, top=100):
+        """
+        This is an internal function that converts the sparse matrix back into a dataframe format
+        """
+        non_zeros = sparse_matrix.nonzero()
+        
+        sparserows = non_zeros[0]
+        sparsecols = non_zeros[1]
+        
+        if top & top < sparsecols.size:
+            nr_matches = top
+        else:
+            print("The top value is not set or the value exceeds the nonzero size")
+            nr_matches = sparsecols.size
+
+        left_side = np.empty([nr_matches], dtype=object)
+        index_value = np.empty([nr_matches], dtype=object)
+        right_side = np.empty([nr_matches], dtype=object)
+        contact_id = np.empty([nr_matches], dtype=object)
+        similairity = np.zeros(nr_matches)
+        
+        for index in range(0, nr_matches):
+            left_side[index] = self.nm.loc[sparserows[index], 'primary_key']
+            index_value[index] = sparserows[index]
+            right_side[index] = self.ground_truth.loc[sparsecols[index], 'primary_key']
+            contact_id[index] = self.ground_truth.loc[sparsecols[index], 'Salesforce Contact Id']
+            similairity[index] = sparse_matrix.data[index]
+        
+        return pd.DataFrame({'index':index_value,
+                            'left_side': left_side,
+                            'right_side': right_side,
+                            'Ground Truth ID':contact_id, 
+                            'similarity': similairity})
+
+    def state_abbrev(self, value):
+        """
+        This function will transform the state into abbrevation format
+        """
+        value = str(value).lower() # making sure the value is in string format
+
+        try:
+            if value != 'nan':
+                return self.state_reference[value]
+            else:
+                return value
+        except:
+            return "Error no value in reference"
+
+        
