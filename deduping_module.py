@@ -13,14 +13,17 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 class deduping_class():
 
-    def __init__(self, gt):
+    def __init__(self, gt, object):
         """
-        Input: reference/groundtruth
-        
+        Input: reference/groundtruth, object to be deduped
         """
         self.ground_truth = gt
         self.ngrams_value = None
         self.state_reference_initiator()
+        if str(object).lower() == 'account':
+            self.ground_truth.drop_duplicates(subset='Salesforce Account Id', inplace= True)
+            self.ground_truth.reset_index(drop=True, inplace= True)
+        
     
     def state_reference_initiator(self, link = 'state_reference.json'):
         f = open(link)
