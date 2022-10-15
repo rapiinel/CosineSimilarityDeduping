@@ -18,6 +18,9 @@ class deduping_class():
         Input: reference/groundtruth, object to be deduped
         """
         self.ground_truth = gt
+        # dropping salesforce footer in the extracted file
+        self.ground_truth.dropna(subset=['Salesforce Contact Id'], inplace= True)
+        self.ground_truth.reset_index(drop=True, inplace= True)
         self.ngrams_value = None
         self.state_reference_initiator()
         if str(object).lower() == 'account':
@@ -126,6 +129,8 @@ class deduping_class():
 
         self.matched = self.get_matches_df(matches, self.combined_list, top=top)
 
+        self.segment_output()
+
     def get_matches_df(self,sparse_matrix, name_vector, top=100):
         """
         This is an internal function that converts the sparse matrix back into a dataframe format
@@ -155,8 +160,8 @@ class deduping_class():
             similairity[index] = sparse_matrix.data[index]
         
         return pd.DataFrame({'index':index_value,
-                            'left_side': left_side,
-                            'right_side': right_side,
+                            'Matched DataFrame Key': left_side,
+                            'Ground Truth Key': right_side,
                             'Ground Truth ID':contact_id, 
                             'similarity': similairity})
 
@@ -173,5 +178,9 @@ class deduping_class():
                 return value
         except:
             return "Error no value in reference"
-
-        
+    
+    def segment_output(self):
+        #non_matched
+        self.non_matched_output = self.nm[~self.nm.index.isin(self.matched['index'].tolist())]
+        #matched
+        self.matched_output = self.nm.merge(self.matched[['index','Ground Truth ID','similarity']].set_index('index'), left_index= True, right_index=True)
