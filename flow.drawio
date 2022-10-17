@@ -1,0 +1,78 @@
+<mxfile host="65bd71144e">
+    <diagram id="zZ3cf60kv4q-r1eCX90Y" name="Page-1">
+        <mxGraphModel dx="691" dy="920" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="26" value="" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="440" width="320" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="" style="endArrow=classic;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" target="2">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="120" y="590" as="sourcePoint"/>
+                        <mxPoint x="280" y="670" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="8" value="Start" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="270" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="Download Salesforce Reference / Ground Truth" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="17.5" y="360" width="135" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="" style="endArrow=classic;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="8" target="9">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="250" y="600" as="sourcePoint"/>
+                        <mxPoint x="300" y="550" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="13" value="" style="edgeStyle=none;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="9" target="11">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="180" y="430" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="11" value="Select primary key &amp;amp; to match dataframe" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="18.75" y="470" width="132.5" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="Vectorize" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="465" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="Cosine Similarity" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="380" y="465" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="Output segmented results" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="540" y="465" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="End" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+                    <mxGeometry x="710" y="470" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="" style="edgeStyle=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="11" target="15">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="95" y="440" as="sourcePoint"/>
+                        <mxPoint x="95" y="480" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="22" value="" style="edgeStyle=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="15" target="17">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="161.25" y="505" as="sourcePoint"/>
+                        <mxPoint x="230" y="505" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="23" value="" style="edgeStyle=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="17" target="18">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="350" y="505" as="sourcePoint"/>
+                        <mxPoint x="390" y="505" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="24" value="" style="edgeStyle=none;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="18" target="20">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="510" y="505" as="sourcePoint"/>
+                        <mxPoint x="550" y="505" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="27" value="Fuzzy Logic" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;" vertex="1" parent="1">
+                    <mxGeometry x="295" y="435" width="130" height="30" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -18,6 +18,9 @@ class deduping_class():
         Input: reference/groundtruth, object to be deduped
         """
         self.ground_truth = gt
+        # dropping salesforce footer in the extracted file
+        self.ground_truth.dropna(subset=['Salesforce Contact Id'], inplace= True)
+        self.ground_truth.reset_index(drop=True, inplace= True)
         self.ngrams_value = None
         self.state_reference_initiator()
         if str(object).lower() == 'account':
@@ -43,11 +46,21 @@ class deduping_class():
             sets the key reference column in ground truth
             return 
         """
+
         if str(type(data)) == "<class 'NoneType'>":
             raise ValueError("There is no dataframe inputed for matching")
         else:
             self.nm = data
 
+        #column checker
+        for col_value in column_names:
+            if col_value not in self.ground_truth.columns:
+                raise KeyError(f"{col_value}, Column name not found in ground truth dataframe")
+
+        for col_value in column_names:
+            if col_value not in self.nm.columns:
+                raise KeyError(f"{col_value}, Column name not found in name to match dataframe")
+        
         column_names = [value for value in column_names]
 
         # making sure the selected columns in string format
@@ -57,9 +70,13 @@ class deduping_class():
 
         self.ground_truth['primary_key'] = self.ground_truth[column_names].values.tolist()
         self.ground_truth['primary_key'] = self.ground_truth['primary_key'].apply(''.join)
+        self.ground_truth['primary_key'] = self.ground_truth['primary_key'].str.replace(r'[^\w\s]+', '')
+        self.ground_truth['primary_key'] = self.ground_truth['primary_key'].str.replace(" ", "")
 
         self.nm['primary_key'] = self.nm[column_names].values.tolist()
         self.nm['primary_key'] = self.nm['primary_key'].apply(''.join)
+        self.nm['primary_key'] = self.nm['primary_key'].str.replace(r'[^\w\s]+', '')
+        self.nm['primary_key'] = self.nm['primary_key'].str.replace(" ", "")
 
     def ngrams(self, string, n=3):
         """
@@ -96,9 +113,11 @@ class deduping_class():
 
         self.nm_tfidf = self.nm['primary_key'].tolist()
         self.nm_tfidf = vectorizer.transform(self.nm_tfidf)
+        self.nm_tfidf_df = pd.DataFrame.sparse.from_spmatrix(self.nm_tfidf, columns= vectorizer.get_feature_names_out())
 
         self.gt_tfidf = self.ground_truth['primary_key']
         self.gt_tfidf = vectorizer.transform(self.gt_tfidf)
+        self.gt_tfidf_df = pd.DataFrame.sparse.from_spmatrix(self.gt_tfidf, columns= vectorizer.get_feature_names_out())
 
     def get_match(self, top):
         """
@@ -112,6 +131,8 @@ class deduping_class():
         matches = awesome_cossim_topn(self.nm_tfidf, self.gt_tfidf.transpose(), 10, 0.8, use_threads=True, n_jobs=6)
 
         self.matched = self.get_matches_df(matches, self.combined_list, top=top)
+
+        self.segment_output()
 
     def get_matches_df(self,sparse_matrix, name_vector, top=100):
         """
@@ -142,8 +163,8 @@ class deduping_class():
             similairity[index] = sparse_matrix.data[index]
         
         return pd.DataFrame({'index':index_value,
-                            'left_side': left_side,
-                            'right_side': right_side,
+                            'Matched DataFrame Key': left_side,
+                            'Ground Truth Key': right_side,
                             'Ground Truth ID':contact_id, 
                             'similarity': similairity})
 
@@ -160,5 +181,9 @@ class deduping_class():
                 return value
         except:
             return "Error no value in reference"
-
-        
+    
+    def segment_output(self):
+        #non_matched
+        self.non_matched_output = self.nm[~self.nm.index.isin(self.matched['index'].tolist())]
+        #matched
+        self.matched_output = self.nm.merge(self.matched[['index','Ground Truth ID','similarity']].set_index('index'), left_index= True, right_index=True)
