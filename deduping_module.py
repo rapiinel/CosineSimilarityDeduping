@@ -67,13 +67,16 @@ class deduping_class():
         for dataframe in [self.nm, self.ground_truth]:
             for col in column_names:
                 dataframe[col] = dataframe[col].astype('str')
-                dataframe[col] = dataframe[col].str.replace(" ", "")
 
         self.ground_truth['primary_key'] = self.ground_truth[column_names].values.tolist()
         self.ground_truth['primary_key'] = self.ground_truth['primary_key'].apply(''.join)
+        self.ground_truth['primary_key'] = self.ground_truth['primary_key'].str.replace(r'[^\w\s]+', '')
+        self.ground_truth['primary_key'] = self.ground_truth['primary_key'].str.replace(" ", "")
 
         self.nm['primary_key'] = self.nm[column_names].values.tolist()
         self.nm['primary_key'] = self.nm['primary_key'].apply(''.join)
+        self.nm['primary_key'] = self.nm['primary_key'].str.replace(r'[^\w\s]+', '')
+        self.nm['primary_key'] = self.nm['primary_key'].str.replace(" ", "")
 
     def ngrams(self, string, n=3):
         """
